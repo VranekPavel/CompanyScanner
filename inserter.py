@@ -1,46 +1,79 @@
 import psycopg2
 import pandas as pd 
-from yahooScrap import YahooFinance
-from suporter import num_converter, to_datetime
+from yFin import YF
+from sqlalchemy import create_engine
+from datetime import datetime
 
-yahoo = YahooFinance('APPL')
+engine = create_engine('postgresql://uzivatel:postgres@localhost:5432/fin_data')
 
-conn = psycopg2.connect('dbname=fin_data user=uzivatel password=postgres')
+def company(data):
+    pd.DataFrame(data.company, index=[0]).to_sql('company', con=engine, if_exists='append', index=False, schema='public')
 
-def balance_sheet():
-    data = pd.DataFrame(yahoo.financials_balance())
-    data.iloc[:,1:] = num_converter(data.iloc[:,1:])
-    data.iloc[:,0] = to_datetime(data.iloc[:,0])
-    for row in data.to_numpy():
-        with conn.cursor() as cur:
-            cur.execute('''
-                INSERT INTO balance_sheet (ticker, time, time_period, cash, receivables, inventory, current_assets, non_current_assets)
-                VALUES(%s,%s,%s,%s,%s,%s,%s,%s)
-            ''', (yahoo.ticker[0],row[0], 'annual', row[1], row[2], row[3], row[4], row[5]))
+def market(data):
+    pd.DataFrame(data.market, index=[0]).to_sql('market', con=engine, if_exists='append', index=False, schema='public')
 
-def profile():
-    data = pd.DataFrame(yahoo.profile())
-    data['num_of_employees'] = num_converter(data['num_of_employees'])
-    with conn.cursor() as cur:
-        cur.execute('''
-            INSERT INTO Market(industry, sector)
-            VALUES(%s,%s)
-            ON CONFLICT DO NOTHING
-        ''', (data.loc[0,'industry'], data.loc[0,'sector']))
+def stock(data):
+    pd.DataFrame(data.stock, index=[0]).to_sql('stock', con=engine, if_exists='append', index=False, schema='public')
 
-    with conn.cursor() as cur:       
-        cur.execute('''
-            INSERT INTO Company (ticker_id, name, address, web, contact, sector, industry, num_of_employees)
-            VALUES(%s,%s,%s,%s,%s,%s,%s,%s)
-        ''', (yahoo.ticker[0], data.loc[0,'name'], data.loc[0,'address'], data.loc[0,'web'], data.loc[0,'contact'], data.loc[0,'sector'], data.loc[0,'industry'], data.loc[0,'num_of_employees'].replace(',','')))
+def statistics(data):
+    pd.DataFrame(data.statistics, index=[0]).to_sql('statistics', con=engine, if_exists='append', index=False, schema='public')
 
-try:
-    with conn:
-        #profile()
-        balance_sheet()
-except Exception as error:
-    print(error)
-else:
-    print('Executed successfully')
-finally:
-    conn.close()
+def dividends(data):
+    data.dividends().to_sql('dividends', con=engine, if_exists='append', index=False, schema='public')
+
+def financials(data):
+    data.financials().to_sql('financials', con=engine, if_exists='append', index=False, schema='public')
+
+def stock_holders(data):
+    data.stock_holders().to_sql('stock_holders', con=engine, if_exists='append', index=False, schema='public')
+
+def balance_sheet(data):
+    data.balance_sheet().to_sql('balance_sheet', con=engine, if_exists='append', index=False, schema='public')
+
+def cash_flow(data):
+    data.cashFlow().to_sql('cash_flow', con=engine, if_exists='append', index=False, schema='public')
+
+def earnings(data):
+    data.earnings().to_sql('earnings', con=engine, if_exists='append', index=False, schema='public')
+
+def sustainability(data):
+    data.sustainability().to_sql('sustainability', con=engine, if_exists='append', index=False, schema='public')
+
+def recommendations(data):
+    data.recommendations().to_sql('recommendations', con=engine, if_exists='append', index=False, schema='public')
+
+class IOhandler():
+    def __init__(self, file):
+        self.file = file
+
+    def write(self, text):
+        f = open(self.file, 'a')
+        f.write(str(text))
+        f.close()
+
+def insertTicker():
+    data = YF('AAPL')
+    error_log = IOhandler('error_log.txt')
+    log = IOhandler('log.txt')
+    funcs = [company, market, stock, statistics, dividends, financials, stock_holders, balance_sheet, cash_flow, earnings, sustainability, recommendations]
+    err = 0
+    for func in funcs:
+        try:
+            func(data)
+        except Exception as error:
+            if type(error).__name__ == 'IntegrityError':
+                log.write('{}({}): already in database\n'.format(data.ticker[0], datetime.now().isoformat(timespec='minutes')))
+                print('{}: already in database'.format(data.ticker[0]))
+                break
+            else:
+                err += 1
+                print(type(error).__name__)
+                error_log.write('{}, Ticker: {}, Func: {},  Error: {}\n'.format(datetime.now().isoformat(timespec='minutes') ,data.ticker[0] , func, error))
+            continue
+        else:
+            print('{}: success'. format(func))
+    else:
+        log.write('{}({}): job done with {} error(s)\n'.format(data.ticker[0], datetime.now().isoformat(timespec='minutes'), err))
+        print('{}: job done with {} error(s)'.format(data.ticker[0], err))
+
+insertTicker()
