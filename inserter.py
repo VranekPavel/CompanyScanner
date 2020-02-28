@@ -51,10 +51,11 @@ class IOhandler():
         f.write(str(text))
         f.close()
 
-def insertTicker():
-    data = YF('AAPL')
+def insertTicker(ticker):
+    message = ''
     error_log = IOhandler('error_log.txt')
     log = IOhandler('log.txt')
+    data = YF(ticker)
     funcs = [company, market, stock, statistics, dividends, financials, stock_holders, balance_sheet, cash_flow, earnings, sustainability, recommendations]
     err = 0
     for func in funcs:
@@ -63,17 +64,17 @@ def insertTicker():
         except Exception as error:
             if type(error).__name__ == 'IntegrityError':
                 log.write('{}({}): already in database\n'.format(data.ticker[0], datetime.now().isoformat(timespec='minutes')))
-                print('{}: already in database'.format(data.ticker[0]))
+                message = '{}: already in database'.format(data.ticker[0])
                 break
             else:
                 err += 1
-                print(type(error).__name__)
+                message = error
                 error_log.write('{}, Ticker: {}, Func: {},  Error: {}\n'.format(datetime.now().isoformat(timespec='minutes') ,data.ticker[0] , func, error))
             continue
         else:
-            print('{}: success'. format(func))
+            message = '{}: success'.format(func)
     else:
         log.write('{}({}): job done with {} error(s)\n'.format(data.ticker[0], datetime.now().isoformat(timespec='minutes'), err))
-        print('{}: job done with {} error(s)'.format(data.ticker[0], err))
+        message = '{}: job done with {} error(s)'.format(data.ticker[0], err)
 
-insertTicker()
+    return message
