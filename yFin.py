@@ -151,6 +151,15 @@ class YF():
         return stock_holders
 
     def balance_sheet(self):
+        output = pd.DataFrame(columns = ['time', 'Total Liab', 'Total Stockholder Equity', 'Other Current Liab',
+        'Total Assets', 'Common Stock', 'Other Current Assets',
+        'Retained Earnings', 'Other Liab', 'Treasury Stock', 'Other Assets',
+        'Cash', 'Total Current Liabilities', 'Short Long Term Debt',
+        'Other Stockholder Equity', 'Property Plant Equipment',
+        'Total Current Assets', 'Long Term Investments', 'Net Tangible Assets',
+        'Short Term Investments', 'Net Receivables', 'Long Term Debt',
+        'Inventory', 'Accounts Payable', 'Intangible Assets', 'Good Will',
+        'Deferred Long Term Asset Charges', 'Capital Surplus', 'Minority Interest','ticker_id', 'timePeriod'])
         balance_sheet = self.data[0].balance_sheet.swapaxes('index', 'columns').reset_index()
         balance_sheet['ticker_id'] = self.ticker[0]
         balance_sheet['timePeriod'] = 'anual'
@@ -159,28 +168,12 @@ class YF():
         quarter_balance_sheet['timePeriod'] = 'quarter'
         balance = balance_sheet.append(quarter_balance_sheet)
         balance.rename(columns={'':'time'},inplace=True)
-        balance = balance[['time', 'Total Liab', 'Total Stockholder Equity', 'Other Current Liab',
-        'Total Assets', 'Common Stock', 'Other Current Assets',
-        'Retained Earnings', 'Other Liab', 'Treasury Stock', 'Other Assets',
-        'Cash', 'Total Current Liabilities', 'Short Long Term Debt',
-        'Other Stockholder Equity', 'Property Plant Equipment',
-        'Total Current Assets', 'Long Term Investments', 'Net Tangible Assets',
-        'Short Term Investments', 'Net Receivables', 'Long Term Debt',
-        'Inventory', 'Accounts Payable', 'Intangible Assets', 'Good Will',
-        'ticker_id', 'timePeriod']]
-        balance.columns = self.normalize(balance.columns)
-        return balance
+        output[balance.columns] = balance
+        output.columns = self.normalize(output.columns)
+        return output
 
     def cashFlow(self):
-        cashFlow = self.data[0].cashflow.swapaxes('index', 'columns').reset_index()
-        cashFlow['ticker_id'] = self.ticker[0]
-        cashFlow['timePeriod'] = 'anual'
-        quarter_cashFlow = self.data[0].quarterly_cashflow.swapaxes('index', 'columns').reset_index()
-        quarter_cashFlow['ticker_id'] = self.ticker[0]
-        quarter_cashFlow['timePeriod'] = 'quarter'
-        cash = cashFlow.append(quarter_cashFlow)
-        cash.rename(columns={'':'time'},inplace=True)
-        cash = cash[['time', 'Investments', 'Change To Liabilities',
+        output = pd.DataFrame(columns=['time', 'Investments', 'Change To Liabilities',
         'Total Cashflows From Investing Activities', 'Net Borrowings',
         'Total Cash From Financing Activities',
         'Change To Operating Activities', 'Issuance Of Stock', 'Net Income',
@@ -189,9 +182,18 @@ class YF():
         'Other Cashflows From Investing Activities', 'Dividends Paid',
         'Change To Inventory', 'Change To Account Receivables',
         'Other Cashflows From Financing Activities', 'Change To Netincome',
-        'Capital Expenditures', 'ticker_id', 'timePeriod']]
-        cash.columns = self.normalize(cash.columns)
-        return cash
+        'Capital Expenditures','Effect Of Exchange Rate', 'ticker_id', 'timePeriod'])
+        cashFlow = self.data[0].cashflow.swapaxes('index', 'columns').reset_index()
+        cashFlow['ticker_id'] = self.ticker[0]
+        cashFlow['timePeriod'] = 'anual'
+        quarter_cashFlow = self.data[0].quarterly_cashflow.swapaxes('index', 'columns').reset_index()
+        quarter_cashFlow['ticker_id'] = self.ticker[0]
+        quarter_cashFlow['timePeriod'] = 'quarter'
+        cash = cashFlow.append(quarter_cashFlow)
+        cash.rename(columns={'':'time'},inplace=True)
+        output[cash.columns] = cash
+        output.columns = self.normalize(output.columns)
+        return output
 
     def earnings(self):
         earnings = self.data[0].earnings.reset_index()

@@ -234,6 +234,9 @@ def create_schema():
             "accountsPayable" bigint,
             "intangibleAssets" bigint,
             "goodWill" bigint,
+            "deferredLongTermAssetCharges" bigint,
+            "capitalSurplus" bigint,
+            "minorityInterest" bigint,
             ticker_id varchar(6),
             "timePeriod" varchar(10),
             FOREIGN KEY (ticker_id) REFERENCES Company(ticker_id)
@@ -264,6 +267,7 @@ def create_schema():
             "otherCashflowsFromFinancingActivities" bigint,
             "changeToNetincome" bigint,
             "capitalExpenditures" bigint,
+            "effectOfExchangeRate" bigint,
             FOREIGN KEY (ticker_id) REFERENCES Company(ticker_id)
      )
     ''')
