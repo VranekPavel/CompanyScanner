@@ -2,6 +2,7 @@
 from yfinance_master import yfinance as yf
 import pandas as pd
 from datetime import datetime, timedelta
+import re
 
 #data[0] = yf.Ticker('AAPL')
 class YF():
@@ -157,35 +158,39 @@ class YF():
         quarter_balance_sheet['ticker_id'] = self.ticker[0]
         quarter_balance_sheet['timePeriod'] = 'quarter'
         balance = balance_sheet.append(quarter_balance_sheet)
-        balance.columns = ['time', 'totalLiab', 'totalStockholderEquity', 'otherCurrentLiab',
-       'totalAssets', 'commonStock', 'otherCurrentAssets',
-       'retainedEarnings', 'otherLiab', 'treasuryStock', 'otherAssets',
-       'cash', 'totalCurrentLiabilities', 'shortLongTermDebt',
-       'otherStockholderEquity', 'propertyPlantEquipment',
-       'totalCurrentAssets', 'longTermInvestments', 'netTangibleAssets',
-       'shortTermInvestments', 'netReceivables', 'longTermDebt',
-       'inventory', 'accountsPayable', 'intangibleAssets', 'goodWill',
-       'ticker_id', 'timePeriod']
+        balance.rename(columns={'':'time'},inplace=True)
+        balance = balance[['time', 'Total Liab', 'Total Stockholder Equity', 'Other Current Liab',
+        'Total Assets', 'Common Stock', 'Other Current Assets',
+        'Retained Earnings', 'Other Liab', 'Treasury Stock', 'Other Assets',
+        'Cash', 'Total Current Liabilities', 'Short Long Term Debt',
+        'Other Stockholder Equity', 'Property Plant Equipment',
+        'Total Current Assets', 'Long Term Investments', 'Net Tangible Assets',
+        'Short Term Investments', 'Net Receivables', 'Long Term Debt',
+        'Inventory', 'Accounts Payable', 'Intangible Assets', 'Good Will',
+        'ticker_id', 'timePeriod']]
+        balance.columns = self.normalize(balance.columns)
         return balance
 
     def cashFlow(self):
         cashFlow = self.data[0].cashflow.swapaxes('index', 'columns').reset_index()
         cashFlow['ticker_id'] = self.ticker[0]
-        cashFlow['timerPeriod'] = 'anual'
+        cashFlow['timePeriod'] = 'anual'
         quarter_cashFlow = self.data[0].quarterly_cashflow.swapaxes('index', 'columns').reset_index()
         quarter_cashFlow['ticker_id'] = self.ticker[0]
-        quarter_cashFlow['timerPeriod'] = 'quarter'
+        quarter_cashFlow['timePeriod'] = 'quarter'
         cash = cashFlow.append(quarter_cashFlow)
-        cash.columns = ['time', 'investments', 'changeToLiabilities',
-       'totalCashflowsFromInvestingActivities', 'netBorrowings',
-       'totalCashFromFinancingActivities',
-       'changeToOperatingActivities', 'issuanceOfStock', 'netIncome',
-       'changeInCash', 'repurchaseOfStock',
-       'totalCashFromOperatingActivities', 'depreciation',
-       'otherCashFlowsFromInvestingActivities', 'dividendsPaid',
-       'changeToInventory', 'changeToAccountReceivables',
-       'otherCashFlowsFromFinancingActivities', 'changeToNetincome',
-       'capitalExpenditures', 'ticker_id', 'timePeriod']
+        cash.rename(columns={'':'time'},inplace=True)
+        cash = cash[['time', 'Investments', 'Change To Liabilities',
+        'Total Cashflows From Investing Activities', 'Net Borrowings',
+        'Total Cash From Financing Activities',
+        'Change To Operating Activities', 'Issuance Of Stock', 'Net Income',
+        'Change In Cash', 'Repurchase Of Stock',
+        'Total Cash From Operating Activities', 'Depreciation',
+        'Other Cashflows From Investing Activities', 'Dividends Paid',
+        'Change To Inventory', 'Change To Account Receivables',
+        'Other Cashflows From Financing Activities', 'Change To Netincome',
+        'Capital Expenditures', 'ticker_id', 'timePeriod']]
+        cash.columns = self.normalize(cash.columns)
         return cash
 
     def earnings(self):
@@ -215,3 +220,11 @@ class YF():
         recommendations =  recommendations.loc[recommendations['Date'] > datetime.today() - timedelta(weeks=72)]
         recommendations.columns = ['ticker_id', 'time', 'firm', 'toGrade', 'fromGrade', 'action']
         return recommendations
+
+    def normalize(self, col):
+        norm = []
+        for i in col:
+            i = i[0].lower() + i[1:]
+            i = re.sub(' ', '', i)
+            norm.append(i)
+        return norm

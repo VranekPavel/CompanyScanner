@@ -69,7 +69,7 @@ def insertTicker(ticker):
             else:
                 err += 1
                 message = error
-                error_log.write('{}, Ticker: {}, Func: {},  Error: {}\n'.format(datetime.now().isoformat(timespec='minutes') ,data.ticker[0] , func, error))
+                error_log.write('\n{}, Ticker: {}, Func: {},  Error: {}'.format(datetime.now().isoformat(timespec='minutes') ,data.ticker[0] , func, error))
             continue
         else:
             message = '{}: success'.format(func)
