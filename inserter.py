@@ -58,6 +58,7 @@ def insertTicker(ticker):
     data = YF(ticker)
     funcs = [company, market, stock, statistics, dividends, financials, stock_holders, balance_sheet, cash_flow, earnings, sustainability, recommendations]
     err = 0
+    empty = 0
     for func in funcs:
         try:
             func(data)
@@ -66,6 +67,10 @@ def insertTicker(ticker):
                 log.write('{}({}): already in database\n'.format(data.ticker[0], datetime.now().isoformat(timespec='minutes')))
                 message = '{}: already in database'.format(data.ticker[0])
                 break
+            elif type(error).__name__ == 'EmptyError':
+                empty += 1
+                message = error
+                error_log.write('\n{}, Ticker: {}, Func: {},  Error: {}'.format(datetime.now().isoformat(timespec='minutes') ,data.ticker[0] , func, error))
             else:
                 err += 1
                 message = error
@@ -74,7 +79,7 @@ def insertTicker(ticker):
         else:
             message = '{}: success'.format(func)
     else:
-        log.write('{}({}): job done with {} error(s)\n'.format(data.ticker[0], datetime.now().isoformat(timespec='minutes'), err))
-        message = '{}: job done with {} error(s)'.format(data.ticker[0], err)
+        log.write('{}({}): job done with {} error(s) and {} empty object(s)\n'.format(data.ticker[0], datetime.now().isoformat(timespec='minutes'), err, empty))
+        message = '{}: job done with {} error(s) and {} empty object(s)'.format(data.ticker[0], err, empty)
 
     return message

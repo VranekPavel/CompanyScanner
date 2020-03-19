@@ -200,7 +200,7 @@ def create_schema():
             ticker_id varchar(6),
             insiders varchar(6),
             institutions varchar(6),
-            institutions_float varchar(6),
+            institutions_float varchar(10),
             "numOfInstitutions" integer,
             FOREIGN KEY (ticker_id) REFERENCES Company(ticker_id)
         )
@@ -235,6 +235,7 @@ def create_schema():
             "intangibleAssets" bigint,
             "goodWill" bigint,
             "deferredLongTermAssetCharges" bigint,
+            "deferredLongTermLiab" bigint,
             "capitalSurplus" bigint,
             "minorityInterest" bigint,
             ticker_id varchar(6),
@@ -276,9 +277,9 @@ def create_schema():
             id serial PRIMARY KEY,
             ticker_id varchar(6),
             "timePeriod" varchar(20),
-            "Year" varchar(6),
-            "Revenue" bigint,
-            "Earnings" bigint,
+            "year" varchar(6),
+            "revenue" bigint,
+            "earnings" bigint,
             FOREIGN KEY (ticker_id) REFERENCES Company(ticker_id)
         )
     ''')

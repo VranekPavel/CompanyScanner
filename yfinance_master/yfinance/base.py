@@ -53,7 +53,7 @@ class TickerBase():
         self._sustainability = None
         self._recommendations = None
         self._major_holders = None
-        self._institutional_holders = None
+        self._institutional_holders = utils.empty_df()
         self._isin = None
 
         self._calendar = None
@@ -281,9 +281,12 @@ class TickerBase():
 
         # holders
         url = "{}/{}".format(self._scrape_url, self.ticker)
-        holders = _pd.read_html(url+'\holders')
+        holders = _pd.read_html('{}/{}'.format(url, 'holders'))
         self._major_holders = holders[0]
-        self._institutional_holders = holders[1]
+        try:
+            self._institutional_holders = holders[1]
+        except Exception:
+            pass
         if 'Date Reported' in self._institutional_holders:
             self._institutional_holders['Date Reported'] = _pd.to_datetime(
                 self._institutional_holders['Date Reported'])

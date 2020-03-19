@@ -4,7 +4,12 @@ import pandas as pd
 from datetime import datetime, timedelta
 import re
 
-#data[0] = yf.Ticker('AAPL')
+class EmptyError(Exception):
+    def __init__(self):
+        self.message = 'Empty object'
+    def __str__(self):
+        return self.message
+
 class YF():
     def __init__(self, ticker):
         self.ticker = ticker,
@@ -66,7 +71,7 @@ class YF():
             'payoutRatio': self.data[0].info['payoutRatio'],
             'beta': self.data[0].info['beta'],
             'beta3Year': self.data[0].info['beta3Year'],
-            'trailingPE': self.data[0].info['trailingPE'],
+            'trailingPE': self.reader('trailingPE'),
             'forwardPE': self.data[0].info['forwardPE'],
             'priceToSalesTrailing12Months': self.data[0].info['priceToSalesTrailing12Months'],
             'enterpriseToRevenue': self.data[0].info['enterpriseToRevenue'],
@@ -97,12 +102,12 @@ class YF():
             'ticker_id': self.data[0].info['symbol'],
             'shortName': self.data[0].info['shortName'],
             'longName': self.data[0].info['longName'], 
-            'zip': self.data[0].info['zip'],
-            'fullTimeEmployees': self.data[0].info['fullTimeEmployees'],
+            'zip': self.reader('zip'),
+            'fullTimeEmployees': self.reader('fullTimeEmployees'),
             'longBusinessSummary': self.data[0].info['longBusinessSummary'],
             'city': self.data[0].info['city'],
-            'phone': self.data[0].info['phone'],
-            'state': self.data[0].info['state'],
+            'phone': self.reader('phone'),
+            'state': self.reader('state'),
             'country': self.data[0].info['country'],
             'website': self.data[0].info['website'],
             'address': self.data[0].info['address1'],
@@ -119,6 +124,8 @@ class YF():
         }
     
     def dividends(self):
+        if len(self.data[0].dividends) == 0:
+            raise EmptyError()
         dividends = pd.DataFrame(self.data[0].dividends)
         dividends = dividends.reset_index()
         dividends['ticker_id'] = self.ticker[0]
@@ -126,6 +133,8 @@ class YF():
         return dividends
 
     def financials(self):
+        if self.data[0].financials.shape[0] == 0:
+            raise EmptyError()
         financials = self.data[0].financials.swapaxes('index', 'columns').reset_index()
         financials['ticker_id'] = self.ticker[0]
         financials['timePeriod'] = 'anual'
@@ -145,12 +154,16 @@ class YF():
         return fin
     
     def stock_holders(self):
+        if len(self.data[0].major_holders[0]) == 0:
+            raise EmptyError()
         stock_holders = pd.DataFrame(self.data[0].major_holders[0]).swapaxes('index', 'columns')
         stock_holders.columns = ['insiders', 'institutions', 'institutions_float', 'numOfInstitutions']
         stock_holders['ticker_id'] = self.ticker[0]
         return stock_holders
 
     def balance_sheet(self):
+        if self.data[0].balance_sheet.shape[0] == 0:
+            raise EmptyError()
         output = pd.DataFrame(columns = ['time', 'Total Liab', 'Total Stockholder Equity', 'Other Current Liab',
         'Total Assets', 'Common Stock', 'Other Current Assets',
         'Retained Earnings', 'Other Liab', 'Treasury Stock', 'Other Assets',
@@ -159,7 +172,7 @@ class YF():
         'Total Current Assets', 'Long Term Investments', 'Net Tangible Assets',
         'Short Term Investments', 'Net Receivables', 'Long Term Debt',
         'Inventory', 'Accounts Payable', 'Intangible Assets', 'Good Will',
-        'Deferred Long Term Asset Charges', 'Capital Surplus', 'Minority Interest','ticker_id', 'timePeriod'])
+        'Deferred Long Term Asset Charges', 'deferredLongTermLiab', 'Capital Surplus', 'Minority Interest','ticker_id', 'timePeriod'])
         balance_sheet = self.data[0].balance_sheet.swapaxes('index', 'columns').reset_index()
         balance_sheet['ticker_id'] = self.ticker[0]
         balance_sheet['timePeriod'] = 'anual'
@@ -173,6 +186,8 @@ class YF():
         return output
 
     def cashFlow(self):
+        if self.data[0].cashflow.shape[0] == 0:
+            raise EmptyError()
         output = pd.DataFrame(columns=['time', 'Investments', 'Change To Liabilities',
         'Total Cashflows From Investing Activities', 'Net Borrowings',
         'Total Cash From Financing Activities',
@@ -196,16 +211,21 @@ class YF():
         return output
 
     def earnings(self):
+        if self.data[0].earnings.shape[0] == 0:
+            raise EmptyError()
         earnings = self.data[0].earnings.reset_index()
+        earnings.columns = ['year', 'revenue', 'earnings']
         earnings['ticker_id'] = self.ticker[0]
         earnings['timePeriod'] = 'anual'
         quarter_earnings = self.data[0].quarterly_earnings.reset_index()
-        quarter_earnings.columns = ['Year', 'Revenue', 'Earnings']
+        quarter_earnings.columns = ['year', 'revenue', 'earnings']
         quarter_earnings['ticker_id'] = self.ticker[0]
         quarter_earnings['timePeriod'] = 'quarter'
         return earnings.append(quarter_earnings)
 
     def sustainability(self):
+        if self.data[0].sustainability is None or self.data[0].sustainability.shape[0] == 0:
+            raise EmptyError()
         sustainability = self.data[0].sustainability.swapaxes('index', 'columns')
         columns = sustainability.columns
         columns = columns.insert(0, 'ticker_id')
@@ -214,6 +234,8 @@ class YF():
         return sustainability
 
     def recommendations(self):
+        if self.data[0].recommendations  is None or self.data[0].recommendations.shape[0] == 0:
+            raise EmptyError()
         recommendations = self.data[0].recommendations.reset_index()
         columns = recommendations.columns
         columns = columns.insert(0, 'ticker_id')
@@ -230,3 +252,10 @@ class YF():
             i = re.sub(' ', '', i)
             norm.append(i)
         return norm
+
+    def reader(self, val):
+        try:
+            return self.data[0].info[val]
+        except Exception:
+            return None
+
