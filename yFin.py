@@ -16,7 +16,7 @@ class YF():
         self.data = yf.Ticker(self.ticker[0]),
         self.market = {
             'ticker_id':self.data[0].info['symbol'],
-            'sector': self.data[0].info['sector'],
+            'sector': self.reader('sector'),
             'industry': self.data[0].info['industry']
         },
         self.stock ={
@@ -33,7 +33,7 @@ class YF():
             'ask': self.data[0].info['ask'],
             'askSize': self.data[0].info['askSize'],
             'previousClose': self.data[0].info['previousClose'],
-            'regularMarketOpen': self.data[0].info['regularMarketOpen'],
+            'regularMarketOpen': self.reader('regularMarketOpen'),
             'regularMarketPrice': self.data[0].info['regularMarketPrice'],
             'regularMarketPreviousClose': self.data[0].info['regularMarketPreviousClose'],
             'regularMarketDayHigh': self.data[0].info['regularMarketDayHigh'],

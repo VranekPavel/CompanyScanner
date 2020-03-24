@@ -37,7 +37,7 @@ def create_schema():
     cur.execute('CREATE SCHEMA IF NOT EXISTS public')
     cur.execute('''
         CREATE TABLE IF NOT EXISTS Company(
-            ticker_id varchar(6) PRIMARY KEY,
+            ticker_id varchar(15) PRIMARY KEY,
             "shortName" varchar(50),
             "longName" varchar(256),
             zip varchar(50),
@@ -63,7 +63,7 @@ def create_schema():
     ''')
     cur.execute('''
         CREATE TABLE IF NOT EXISTS Market(
-            ticker_id varchar(6) PRIMARY KEY,
+            ticker_id varchar(15) PRIMARY KEY,
             industry varchar(50),
             sector varchar(50),
             FOREIGN KEY (ticker_id) references Company(ticker_id)
@@ -71,7 +71,7 @@ def create_schema():
     ''')
     cur.execute('''
         CREATE TABLE IF NOT EXISTS Stock(
-            ticker_id varchar(6) PRIMARY KEY,
+            ticker_id varchar(15) PRIMARY KEY,
             currency varchar(6),
             exchange varchar(6),
             "exchangeTimezoneName" varchar(50),
@@ -121,7 +121,7 @@ def create_schema():
     ''')
     cur.execute('''
         CREATE TABLE IF NOT EXISTS Statistics(
-            ticker_id varchar(6) PRIMARY KEY,
+            ticker_id varchar(15) PRIMARY KEY,
             "payoutRatio" float(8),
             beta float(8),
             "beta3Year" float(8),
@@ -157,7 +157,7 @@ def create_schema():
     cur.execute('''
         CREATE TABLE IF NOT EXISTS Dividends(
             id serial PRIMARY KEY,
-            ticker_id varchar(6),
+            ticker_id varchar(15),
             time date,
             value float(8),
             FOREIGN KEY (ticker_id) REFERENCES Company(ticker_id)
@@ -166,7 +166,7 @@ def create_schema():
     cur.execute('''
         CREATE TABLE IF NOT EXISTS Financials(
             id serial PRIMARY KEY,
-            ticker_id varchar(6),
+            ticker_id varchar(15),
             "timePeriod" varchar(20),
             time date,
             "researchDevelopment" bigint,
@@ -197,9 +197,9 @@ def create_schema():
     cur.execute('''
         CREATE TABLE IF NOT EXISTS Stock_holders(
             id serial PRIMARY KEY,
-            ticker_id varchar(6),
-            insiders varchar(6),
-            institutions varchar(6),
+            ticker_id varchar(15),
+            insiders varchar(10),
+            institutions varchar(10),
             institutions_float varchar(10),
             "numOfInstitutions" integer,
             FOREIGN KEY (ticker_id) REFERENCES Company(ticker_id)
@@ -238,7 +238,7 @@ def create_schema():
             "deferredLongTermLiab" bigint,
             "capitalSurplus" bigint,
             "minorityInterest" bigint,
-            ticker_id varchar(6),
+            ticker_id varchar(15),
             "timePeriod" varchar(10),
             FOREIGN KEY (ticker_id) REFERENCES Company(ticker_id)
         )
@@ -246,7 +246,7 @@ def create_schema():
     cur.execute('''
         CREATE TABLE IF NOT EXISTS cash_flow(
             id serial PRIMARY KEY,
-            ticker_id varchar(6),
+            ticker_id varchar(15),
             "timePeriod" varchar(10),
             time date,
             investments bigint,
@@ -275,7 +275,7 @@ def create_schema():
     cur.execute('''
         CREATE TABLE IF NOT EXISTS Earnings(
             id serial PRIMARY KEY,
-            ticker_id varchar(6),
+            ticker_id varchar(15),
             "timePeriod" varchar(20),
             "year" varchar(6),
             "revenue" bigint,
@@ -285,7 +285,7 @@ def create_schema():
     ''')
     cur.execute('''
         CREATE TABLE IF NOT EXISTS Sustainability(
-            ticker_id varchar(6) PRIMARY KEY,
+            ticker_id varchar(15) PRIMARY KEY,
             "palmOil" boolean,
             "controversialWeapons" boolean,
             gambling boolean,
@@ -319,7 +319,7 @@ def create_schema():
     cur.execute('''
         CREATE TABLE IF NOT EXISTS Recommendations(
             id serial PRIMARY KEY,
-            ticker_id varchar(6),
+            ticker_id varchar(15),
             time date,
             firm varchar(250),
             "toGrade" varchar(20),
