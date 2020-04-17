@@ -328,6 +328,19 @@ def create_schema():
             FOREIGN KEY (ticker_id) REFERENCES Company(ticker_id)
         )
     ''')
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS stock_tseries(
+            id serial PRIMARY KEY,
+            ticker_id varchar(15),
+            time date,
+            open float(8),
+            high float(8),
+            low float(8),
+            close float(8),
+            volume bigint,
+            FOREIGN KEY (ticker_id) REFERENCES Company(ticker_id)
+        )
+    ''')
     conn.close() 
 
 try:

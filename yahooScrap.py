@@ -12,14 +12,16 @@ class YahooFinanceTickers():
 
     def tickers(self):
         output = []
-        response = requests.get(self.url[0]).text
-        soup = BeautifulSoup(response, 'html.parser')
+        try:
+            response = requests.get(self.url[0]).text
+            soup = BeautifulSoup(response, 'html.parser')
 
-        for item in soup.find_all("a", class_="Fw(600)"):
-            match = re.search(r'href="\/quote\/(?P<ticker>.*?)\?', str(item))
-            output.append(match.group('ticker'))
-
-        return output
+            for item in soup.find_all("a", class_="Fw(600)"):
+                match = re.search(r'href="\/quote\/(?P<ticker>.*?)\?', str(item))
+                output.append(match.group('ticker'))
+            return output
+        except Exception:
+            return output
 
 class IOhandler():
     def __init__(self, file):

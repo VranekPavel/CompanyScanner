@@ -42,6 +42,9 @@ def sustainability(data):
 def recommendations(data):
     data.recommendations().to_sql('recommendations', con=engine, if_exists='append', index=False, schema='public')
 
+def stock_tseries(data):
+    data.historic().to_sql('stock_tseries', con=engine, if_exists='append', index=False, schema='public')
+
 class IOhandler():
     def __init__(self, file):
         self.file = file
@@ -56,7 +59,7 @@ def insertTicker(ticker):
     error_log = IOhandler('error_log.txt')
     log = IOhandler('log.txt')
     data = YF(ticker)
-    funcs = [company, market, stock, statistics, dividends, financials, stock_holders, balance_sheet, cash_flow, earnings, sustainability, recommendations]
+    funcs = [company, market, stock, statistics, dividends, financials, stock_holders, balance_sheet, cash_flow, earnings, sustainability, recommendations, stock_tseries]
     err = 0
     empty = 0
     for func in funcs:
@@ -83,3 +86,5 @@ def insertTicker(ticker):
         message = '{}: job done with {} error(s) and {} empty object(s)'.format(data.ticker[0], err, empty)
 
     return message
+
+insertTicker('aapl')

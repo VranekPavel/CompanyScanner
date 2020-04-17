@@ -3,6 +3,7 @@ from yfinance_master import yfinance as yf
 import pandas as pd
 from datetime import datetime, timedelta
 import re
+from alpha_vantage.timeseries import TimeSeries
 
 class EmptyError(Exception):
     def __init__(self):
@@ -245,6 +246,14 @@ class YF():
         recommendations.columns = ['ticker_id', 'time', 'firm', 'toGrade', 'fromGrade', 'action']
         return recommendations
 
+    def historic(self):
+        history = self.data[0].history(start='2016-12-31', end='2019-12-31', interval='1mo')
+        history.reset_index(inplace=True)
+        history = history.iloc[:,0:6]
+        history.columns = ['time', 'open', 'high', 'low', 'close', 'volume']
+        history['ticker_id'] = self.ticker[0]
+        return history
+
     def normalize(self, col):
         norm = []
         for i in col:
@@ -259,3 +268,28 @@ class YF():
         except Exception:
             return None
 
+# class AlphaV():
+#     def __init__(self, ticker):
+#         self.key = '0LT6O5AL4SINJJKM'
+#         self.ticker = ticker
+#         self.ts = TimeSeries(self.key, output_format='pandas')
+
+#     def get_daily(self):
+#         data = self.ts.get_daily(self.ticker)[0]
+#         data.columns = ['open', 'high', 'low', 'close', 'volume']
+#         data['ticker_id'] = self.ticker
+#         return data
+
+#     def get_monthly(self):
+#         data = self.ts.get_monthly(self.ticker)[0]
+#         data.columns = ['open', 'high', 'low', 'close', 'volume']
+#         data['ticker_id'] = self.ticker
+#         return data
+
+#     def get_weekly(self):
+#         data = self.ts.get_weekly(self.ticker)[0]
+#         data.columns = ['open', 'high', 'low', 'close', 'volume']
+#         data['ticker_id'] = self.ticker
+#         return data
+
+    
