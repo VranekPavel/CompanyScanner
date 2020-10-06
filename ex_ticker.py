@@ -68,10 +68,10 @@ def count_stat(data):
     stat_counted['assetSharesRatio'] = data['totalAssets'] / data['sharesOutstanding']
     stat_counted['payoutRatio'] = (data['sharesOutstanding'] * data['dividendRate']) / data['netIncome']
     stat_counted['trailingPE'] = data['open'] / (data['netIncome']/data['sharesOutstanding'])
-    stat_counted['priceToSalesTrailing12Months'] = data['sharesOutstanding'] / data['totalRevenue']
+    stat_counted['priceToSalesTrailing12Months'] = (data['open'] / data['sharesOutstanding']) / (data['totalRevenue'] / data['sharesOutstanding'])
     stat_counted['enterpriseToRevenue'] = (data['sharesOutstanding'] * data['open'] + data['longTermDebt'] - data['cash'] - data['shortTermInvestments']) / data['totalRevenue']
     stat_counted['profitMargins'] = data['netIncome'] / data['totalRevenue']
-    stat_counted['enterpriseToEbitda'] = (data['sharesOutstanding'] * data['open'] + data['longTermDebt'] - data['cash'] - data['shortTermInvestments']) / (data['ebit'] + data['interestExpense'] + data['incomeTaxExpense'])
+    stat_counted['enterpriseToEbitda'] = (data['sharesOutstanding'] * data['open'] + data['longTermDebt'] - data['cash'] - data['shortTermInvestments']) / (data['ebit'] + data['depreciation'])
     stat_counted['trailingEps'] = data['netIncome'] / data['sharesOutstanding']
     try:
         stat_counted['heldPercentInstitutions'] = data['institutions'].str.replace('%', '').apply(lambda x: float(x) / 100)
@@ -84,7 +84,7 @@ def count_stat(data):
     except Exception:
         stat_counted['heldPercentInsiders'] = np.NaN
     stat_counted['shortPercentOfFloat'] = data['sharesOutstanding'] / data['sharesShort']
-    stat_counted['bookValue'] = (data['totalAssets'] - data['totalLiab']) / data['sharesOutstanding']
+    stat_counted['bookValue'] = data['totalAssets'] - data['totalLiab']
     stat_counted['marketCap'] = data['open'] * data['sharesOutstanding']    
     stat_counted['enterpriseValue'] = data['sharesOutstanding'] * data['open'] + data['longTermDebt'] - data['cash'] - data['shortTermInvestments']
     return stat_counted
