@@ -7,3 +7,4 @@ Aim of this application is to analyze public companies and suggest best for inve
 * inserter.py - inserting data into database
 * run.py - interface
 * yahooScrap.py - scraping data from yahoo Finance
+* ex_ticker.py - performes final calculations with outcomes to csv files
