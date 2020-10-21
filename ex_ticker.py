@@ -9,9 +9,9 @@ ticker = [sys.argv[1]]
 path = sys.argv[2]
 target = sys.argv[3]
 # ticker = ['AAPL']
-# ticker= ['https://finance.yahoo.com/screener/predefined/growth_technology_stocks']
+#ticker= ['https://finance.yahoo.com/screener/predefined/growth_technology_stocks']
 # path = r'C:\Users\Uzivatel\Documents\School\DiplomaThesis\Pythoning\excel'
-# target = 'screener' # dashboard/screener
+# target = 'dashboard' # dashboard/screener
 
 def merger(data, position):
     stock = pd.DataFrame(data.stock[0], index=[0])
@@ -63,7 +63,7 @@ def count_stat(data):
     stat_counted['ROA'] = data['netIncome'] / data['totalAssets']
     stat_counted['ROE'] = data['netIncome'] / data['totalStockholderEquity']
     stat_counted['market-bookRatio'] = (data['open'] * data['sharesOutstanding'])  / ((data['totalAssets'] - data['totalLiab']) / data['sharesOutstanding'])
-    stat_counted['cashSharesRatio'] = data['cash'] / data['sharesOutstanding']
+    stat_counted['cashSharesRatio'] = (data['cash'] + data['shortTermInvestments']) / data['sharesOutstanding']
     stat_counted['currentSharesRatio'] = data['totalCurrentAssets'] / data['sharesOutstanding']
     stat_counted['assetSharesRatio'] = data['totalAssets'] / data['sharesOutstanding']
     stat_counted['payoutRatio'] = (data['sharesOutstanding'] * data['dividendRate']) / data['netIncome']
@@ -158,7 +158,7 @@ def prepare_data(tickers, iteration, start):
 
 def dashboard(ticker, path, iteration):
     counted_stats, sector = prepare_data(ticker, iteration, 0 )
-    counted_stats.index = [2019, 2018, 2017, 2016]
+    counted_stats.index = [2020, 2019, 2018, 2017]
     counted_stats.to_csv(r'{}\data_source\company.csv'.format(path))
 
     data = YF(ticker[0])
@@ -171,14 +171,22 @@ def dashboard(ticker, path, iteration):
     data.stock_holders().to_csv(r'{}\data_source\stock_holders.csv'.format(path))
     data.historic().to_csv(r'{}\data_source\historic.csv'.format(path))
     pd.read_html('https://finance.yahoo.com/quote/{}/analysis'.format(ticker[0]))[5].to_csv(r'{}\data_source\estimators.csv'.format(path))
+    pd.read_html('https://finance.yahoo.com/quote/{}/analysis'.format(ticker[0]))[2].to_csv(r'{}\data_source\estimators.csv'.format(path), mode='a')
+    pd.read_html('https://finance.yahoo.com/quote/{}/analysis'.format(ticker[0]))[0].to_csv(r'{}\data_source\estimators.csv'.format(path), mode='a')
+    pd.read_html('https://finance.yahoo.com/quote/{}/analysis'.format(ticker[0]))[1].to_csv(r'{}\data_source\estimators.csv'.format(path), mode='a')
+    
+    screener(ticker, path, 1, 0)
 
-def screener(url, path, iteration):
+
+def screener(url, path, iteration, url_type=1):
     stats = pd.read_csv(r'{}\data_source\statistics.csv'.format(path))
     stats.set_index('ticker_id', inplace=True)
-    tickers = YahooFinanceTickers(url).tickers()
-    #tickers = ticker
+    if url_type == 1:
+        tickers = YahooFinanceTickers(url).tickers()
+    else:
+        tickers = url
 
-    ticker_stats, sector = prepare_data(tickers, 1, 0)
+    ticker_stats, sector = prepare_data(tickers, iteration, 0)
     scores = ticker_score(ticker_stats, stats, sector)
     scores['sector'] = sector
     scores['trailingEPS'] = ticker_stats['trailingEps']
@@ -189,11 +197,14 @@ def screener(url, path, iteration):
         except Exception:
             grow_rate['grow_rate'] = np.NaN
     scores = scores.merge(grow_rate, how='left', left_index=True, right_index=True)
-    try:
-        os.remove(r'{}\data_source\screener.csv'.format(path))
-    except Exception:
-        pass
-    scores.to_csv(r'{}\data_source\screener.csv'.format(path))
+    # try:
+    #     os.remove(r'{}\data_source\screener.csv'.format(path))
+    # except Exception:
+    #     pass
+    if url_type == 1:
+        scores.to_csv(r'{}\data_source\screener.csv'.format(path))
+    else:
+        scores.to_csv(r'{}\data_source\score.csv'.format(path))
 
 if target == 'screener':
     screener(ticker[0], path, 1)
